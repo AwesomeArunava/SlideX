@@ -1,21 +1,53 @@
 import React from "react";
+import { useNavigate } from 'react-router-dom';
 import { Form, Input, Button, Typography, Card, message } from "antd";
 import { UserOutlined, LockOutlined, MailOutlined } from "@ant-design/icons";
 import SlideX from '../assets/slidex.png'
-
 const { Title } = Typography;
 
 const RegisterPage = () => {
   const [form] = Form.useForm();
+  const [loading, setLoading] = React.useState(false);
+  const navigate = useNavigate();
+  // const onFinish = (values)=>{
+  //   console.log("hello", values);
+    
+  // }
+  const [messageApi, contextHolder] = message.useMessage();
 
-  const onFinish = (values) => {
-    console.log("Registration Info:", values);
-    message.success("Registered successfully!");
-    // 👉 Call your backend API to register the user
+  const onFinish = async (values) => {
+    console.log("value:", values)
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:3000/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      });
+
+      const data = await response.json();
+      console.log("data",data)
+      if (!response.ok) {
+        console.log("Message",data.message)
+        throw new Error(data.message || 'Registration failed');
+      }
+      console.log("Registration successful, now showing message");
+      messageApi.success('Registration successful! Please check your email to verify your account.');
+      setTimeout(() => navigate('/login'), 2000);
+    } catch (error) {
+      console.log("value:", values)
+      messageApi.error(error.message || 'An error occurred during registration');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
+    
     <div className="min-h-screen bg-gradient-to-br from-orange-100 via-white to-orange-50 flex items-center justify-center p-4">
+      {contextHolder}
       <Card
         className="shadow-xl rounded-2xl w-full max-w-md border border-orange-200"
         style={{ backgroundColor: "#fff" }}
@@ -113,9 +145,10 @@ const RegisterPage = () => {
               htmlType="submit"
               block
               size="large"
+              loading={loading}
               style={{ backgroundColor: "#E67423", borderColor: "#E67423" }}
             >
-              Register
+              {loading ? 'Registering...' : 'Register'}
             </Button>
           </Form.Item>
         </Form>

@@ -19,7 +19,7 @@ const registerWithEmail = async (req, res) => {
         console.log("isEmailExits: ", isEmailExits)
         // if email alrady exit return status 409
         if (isEmailExits) {
-            return res.status(409).json({ massage: "User alrady existed." })
+            return res.status(409).json({ message: "User alrady existed." })
         }
         console.log("password: ",{password})
         const hashPassword = await bcrypt.hash(password, 10)
@@ -48,7 +48,7 @@ const registerWithEmail = async (req, res) => {
        return res.status(201).json({
             message: "User registered successfully. Please check your email to verify your account.",
           });
-        // return res.status(201).json({massage:"User created successfuly."})
+        // return res.status(201).json({message:"User created successfuly."})
 
     } catch {
         // console.error("Registration error:", error);

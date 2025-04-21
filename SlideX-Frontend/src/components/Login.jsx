@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from 'react-router-dom';
 import { Form, Input, Button, Typography, Card, message } from "antd";
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
 import Slide from "./Slide";
@@ -6,14 +7,43 @@ import SlideX from '../assets/slidex.png'
 const { Title } = Typography;
 
 const LoginPage = () => {
-  const onFinish = (values) => {
-    console.log("Login Info: ", values);
-    message.success("Logging in...");
-    // 🔐 Handle login logic here (API call, localStorage, etc.)
+  const [messageApi, contextHolder] = message.useMessage();
+  const [loading, setLoading] = React.useState(false);
+  const navigate = useNavigate();
+
+  const onFinish = async (values) => {
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:3000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
+      }
+
+      // Store token and user data
+      localStorage.setItem('authToken', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      
+      messageApi.success('Login successful! Redirecting...');
+      setTimeout(() => navigate('/dashboard'), 1500);
+    } catch (error) {
+      messageApi.error(error.message || 'An error occurred during login');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-100 via-white to-orange-50 flex items-center justify-center p-4">
+      {contextHolder}
       <Card
         className="shadow-xl rounded-2xl w-full max-w-md border border-orange-200"
         style={{ backgroundColor: "#fff" }}
@@ -72,12 +102,13 @@ const LoginPage = () => {
               htmlType="submit"
               size="large"
               block
+              loading={loading}
               style={{
                 backgroundColor: "#E67423",
                 borderColor: "#E67423",
               }}
             >
-              Login
+              {loading ? 'Logging in...' : 'Login'}
             </Button>
           </Form.Item>
         </Form>
