@@ -1,0 +1,93 @@
+import { createSlice, current } from "@reduxjs/toolkit";
+
+// const initialState = {
+//   slides: [{id:1, elements:{}}],
+//   currentSlide: null,
+//   currentIndex:0,
+// };
+
+const initialState = {
+  slides: [
+    
+  ],
+  slidesAsImg:[],
+  currentSlide: null,
+  currentIndex: 0,
+  
+};
+
+
+const slideSlice = createSlice({
+  name: "slides",
+  initialState,
+  reducers: {
+    addSlide: (state, action) => {
+      state.slides.push({
+        id: state.slides.length + 1,
+        elements: action.payload || {},
+        history: [],
+        redoStack:[], // fallback to empty if not provided
+      });
+    },
+    deleteSlide:(state, action) => {
+      const { slideIndex } = action.payload;
+      state.slides.splice(slideIndex,1)
+    },
+    setCurrentSlide: (state, action) => {
+      state.currentSlide = action.payload; // expects full slide object or index, your choice
+    },
+    setCurrentIndex: (state, action) => {
+      state.currentIndex = action.payload; // expects full slide object or index, your choice
+    },
+    updateSlideJson: (state, action) => {
+      const { slideIndex, canvasJson } = action.payload;
+      state.slides[slideIndex].elements = canvasJson;
+    },
+    // updateHistory: (state, action) => {
+    //   const { slideIndex, canvasJson } = action.payload;
+    //   const slide = state.slides[slideIndex];
+    
+    //   if (!slide.history) {
+    //     slide.history = [];
+    //   }
+    
+    //   slide.history.push(canvasJson);
+    // },
+    updateHistory: (state, action) => {
+      const { slideIndex, canvasJson } = action.payload;
+      const history = state.slides[slideIndex].history || [];
+      state.slides[slideIndex].history = [...history, canvasJson];
+    },
+    undoHistory: (state, action) => {
+      const { slideIndex } = action.payload;
+      const slide = state.slides[slideIndex];
+    
+      if (!slide.history || slide.history.length <= 1) return;
+    
+      const lastState = slide.history.pop();
+      if (!slide.redoStack) {
+        slide.redoStack = [];
+      }
+      slide.redoStack.push(lastState);
+    
+      slide.elements = slide.history[slide.history.length - 1]; // restore previous
+    },
+    redoHistory: (state, action) => {
+      const { slideIndex } = action.payload;
+      const slide = state.slides[slideIndex];
+    
+      if (!slide.redoStack || slide.redoStack.length === 0) return;
+    
+      const redoState = slide.redoStack.pop();
+      slide.history.push(redoState);
+      slide.elements = redoState; // Or wherever you store the canvas JSON
+    },
+    addSlideAsImage: (state, action) =>{
+      state.slidesAsImg = action.payload;
+    }
+  },
+});
+
+export const { addSlide, updateSlideJson, setCurrentSlide, setCurrentIndex, updateHistory, undoHistory, redoHistory, deleteSlide, addSlideAsImage } = slideSlice.actions;
+export default slideSlice.reducer;
+

@@ -1,0 +1,52 @@
+ // let initialCanvasSize = { width: 800, height: 450 }
+  // useEffect(() => {
+  //   const canvas = new fabric.Canvas("slideCanvas");
+  //    initialCanvasSize.width = canvas.getWidth();
+  //    initialCanvasSize.height = canvas.getHeight();
+  // }, []);
+  // const resizeCanvas = () => {
+  //   const canvas = editor.canvas;
+  //   const newWidth = canvas.getWidth();
+  //   const newHeight = canvas.getHeight();
+  
+  //   const scaleX = newWidth / originalCanvasWidth;
+  //   const scaleY = newHeight / originalCanvasHeight;
+  
+  //   canvas.getObjects().forEach((obj) => {
+  //     obj.scaleX *= scaleX;
+  //     obj.scaleY *= scaleY;
+  //     obj.left *= scaleX;
+  //     obj.top *= scaleY;
+  //     obj.setCoords(); // Updates the bounding box
+  //   });
+  
+  //   canvas.renderAll();
+  // };
+
+  // const resizeCanvas = () => {
+  //   const canvas = editor.canvas;  
+  //   if (!canvas) return;
+  
+  //   // Get the new size (container size)
+  //   const newWidth = canvas.getWidth();
+  //   const newHeight = canvas.getHeight();
+  
+  //   // Calculate the scale factor for X and Y
+  //   const scaleX = newWidth / initialCanvasSize.width;
+  //   const scaleY = newHeight / initialCanvasSize.height;
+  
+  //   // Scale and reposition objects properly
+  //   canvas.getObjects().forEach((obj) => {
+  //     obj.scaleX = obj.scaleX * scaleX;
+  //     obj.scaleY = obj.scaleY * scaleY;
+  //     obj.left = obj.left * scaleX;
+  //     obj.top = obj.top * scaleY;
+  //     obj.setCoords(); // Update bounding box
+  //   });
+  
+  //   // Update canvas size
+  //   // canvas.setWidth(newWidth);
+  //   // canvas.setHeight(newHeight);
+  //   canvas.setDimensions({ width: newWidth, height: newHeight });
+  //   canvas.renderAll();
+  // };
