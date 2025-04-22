@@ -5,7 +5,7 @@ import User from "../model/userModel.js"
 const createSlide = async (req, res) => {
     try {
         const { userId, sessionId } = req.body;
-        if (userId === null) {
+        if (!userId) {
             const newSlide = await SlideDeck.create({
                 sessionId: sessionId,
                 slides: []
@@ -21,12 +21,10 @@ const createSlide = async (req, res) => {
                 slides: []
             });
 
-            const chekeUser = await User.findById({ _id: userId })
-            if (!chekeUser) {
-                return res.status(404).json({ message: "User not found" });
-            }
-
-            const updatedUser = await User.findByIdAndUpdate(
+            // Try to find user but don't fail if not found
+            const chekeUser = await User.findById({ _id: userId });
+            if (chekeUser) {
+              await User.findByIdAndUpdate(
                 userId,
                 { $push: { slides: newSlide._id } }, // Adds to array
                 { new: true }
@@ -35,9 +33,9 @@ const createSlide = async (req, res) => {
             return res.status(200).json({
                 message: "Slide created with UserId",
                 newSlideId: newSlide._id
-            })
+            });
+          }
         }
-
     } catch (error) {
         console.error("Login error:", error);
         return res.status(500).json({ message: "Internal server error" });
