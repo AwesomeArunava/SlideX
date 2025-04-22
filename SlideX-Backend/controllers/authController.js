@@ -1,5 +1,6 @@
 import User from '../model/userModel.js'
 import Token from '../model/tokenModel.js'
+import SlideDeck from '../model/slideModel.js'
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import sendVerificationEmail from "../services/emailService.js"
@@ -198,6 +199,7 @@ const verifyEmail = async (req, res) => {
   };
 
   const guestToUser = async(req, res) => {
+    console.log("hello guest to user is call")
     try {
       const { sessionId, userId } = req.body;
 
@@ -205,15 +207,36 @@ const verifyEmail = async (req, res) => {
         return res.status(400).json({ message: "Session ID and User ID are required" });
       }
 
-      // Update all slides with this sessionId to belong to the new user
-      const result = await SlideDeck.updateMany(
+      // 1. Find all slide decks with this sessionId
+      const slideDecks = await SlideDeck.find({ sessionId });
+      
+      if (!slideDecks.length) {
+        return res.status(200).json({
+          message: "No guest slides found to migrate",
+          updatedCount: 0
+        });
+      }
+
+      // 2. Get array of slide deck IDs
+      const slideDeckIds = slideDecks.map(deck => deck._id);
+
+      // 3. Update slides to belong to new user and clear sessionId
+      const updateResult = await SlideDeck.updateMany(
         { sessionId },
         { $set: { owner: userId, sessionId: null } }
       );
 
+      // 4. Add slide decks to user's slides array
+      await User.findByIdAndUpdate(
+        userId,
+        { $addToSet: { slides: { $each: slideDeckIds } } },
+        { new: true }
+      );
+
       return res.status(200).json({
         message: "Slides successfully migrated to user account",
-        updatedCount: result.modifiedCount
+        updatedCount: updateResult.modifiedCount,
+        slidesMigrated: slideDeckIds.length
       });
 
     } catch (error) {
