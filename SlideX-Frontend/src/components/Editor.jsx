@@ -1,6 +1,7 @@
 import React from "react";
-
-
+import { useParams } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { useState, useEffect } from "react";
 import { Flex, Layout } from "antd";
 import '../App.css'; 
 import Navbar from "./Navbar";
@@ -59,7 +60,8 @@ const Editor = () => {
         const userId = localStorage.getItem('userId');
         const sessionId = localStorage.getItem('sessionId');
         
-        const response = await fetch('/api/slides/show', {
+        // Load existing slides
+        const response = await fetch('/api/slide/showSlides', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

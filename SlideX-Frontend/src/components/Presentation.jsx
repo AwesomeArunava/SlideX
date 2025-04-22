@@ -37,7 +37,7 @@ const Presentation = () => {
         localStorage.setItem('sessionId', sessionId);
       }
 
-      const response = await fetch('/api/slides/create', {
+      const response = await fetch('http://localhost:3000/api/slide/createSlide', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
