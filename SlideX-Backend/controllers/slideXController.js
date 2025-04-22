@@ -46,26 +46,34 @@ const createSlide = async (req, res) => {
 
 
 const updateSlide = async(req, res) => {
-    const {slideId, slides} = req.body;
-    try{
-        if(!slideId || !slides){
-            return res.status(400).json({ message: "User Id and Slide Id are required" }); 
+    const { slideDeckId, slideIndex, elements } = req.body;
+    try {
+        if (!slideDeckId || slideIndex === undefined || !elements) {
+            return res.status(400).json({ message: "SlideDeck ID, slide index, and elements are required" }); 
         }
-        const updatedSlide = await SlideDeck.findByIdAndUpdate(
-            slideId,
-            { $set: { slides: slides } }, // Field to update
-            { new: true } // Return the updated document
-          );
 
-          if (!updatedSlide) {
-            return res.status(404).json({ message: "Slide not found" });
-          }
+        const updateQuery = {
+            $set: {
+                [`slides.${slideIndex}.elements`]: elements
+            }
+        };
 
-          return res.status(200).json({
+        const updatedSlideDeck = await SlideDeck.findByIdAndUpdate(
+            slideDeckId,
+            updateQuery,
+            { new: true }
+        );
+
+        if (!updatedSlideDeck) {
+            return res.status(404).json({ message: "Slide deck not found" });
+        }
+
+        return res.status(200).json({
             message: "Slide updated"
-        })
-    }catch(error){
-        console.log("error:", error)
+        });
+    } catch (error) {
+        console.error("Error updating slide:", error);
+        return res.status(500).json({ message: "Internal server error" });
     }
 }
 

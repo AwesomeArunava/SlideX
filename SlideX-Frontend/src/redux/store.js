@@ -9,8 +9,9 @@ const autoSaveMiddleware = (store) => (next) => (action) => {
     const state = store.getState().slides;
     const currentSlide = state.slides[state.currentIndex];
     if (currentSlide?._id) {
-      store.dispatch(saveSlideToBackend({ 
-        slideId: currentSlide._id, 
+      store.dispatch(saveSlideToBackend({
+        slideDeckId: currentSlide._id,  // The SlideDeck document ID
+        slideIndex: state.currentIndex, // Index in slides array
         elements: currentSlide.elements 
       }));
     }
