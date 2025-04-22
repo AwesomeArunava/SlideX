@@ -197,5 +197,9 @@ const verifyEmail = async (req, res) => {
     }
   };
 
+  const guestToUser = async(req, res) => {
+  
+  }
 
-export {registerWithEmail, verifyEmail, login, logout};
+
+export {registerWithEmail, verifyEmail, login, logout, guestToUser};

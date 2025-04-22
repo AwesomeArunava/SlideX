@@ -49,8 +49,52 @@ const layoutStyle = {
   maxWidth: "100%",
 };
 const Editor = () => {
-  
-  return(
+  const { id: slideId } = useParams();
+  const dispatch = useDispatch();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadSlide = async () => {
+      try {
+        const userId = localStorage.getItem('userId');
+        const sessionId = localStorage.getItem('sessionId');
+        
+        const response = await fetch('/api/slides/show', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            userId: userId || null,
+            sessionId: userId ? null : sessionId
+          }),
+        });
+
+        const { slides } = await response.json();
+        const currentSlide = slides.find(slide => slide._id === slideId);
+
+        if (currentSlide) {
+          dispatch(setCurrentIndex(0));
+          dispatch(updateSlideJson({
+            slideIndex: 0,
+            canvasJson: currentSlide.elements
+          }));
+        }
+      } catch (error) {
+        console.error('Error loading slide:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSlide();
+  }, [slideId, dispatch]);
+
+  if (loading) {
+    return <div>Loading slide...</div>;
+  }
+
+  return (
 
     <Layout style={layoutStyle}>
      <Navbar/>

@@ -95,15 +95,45 @@ const deleteSlide = async (req, res) => {
     }
   };
 
-const showSlides = (req, res) => {
+const showSlides = async(req, res) => {
+    try {
+        const { userId, sessionId } = req.body;
 
+        if (!userId && !sessionId) {
+            return res.status(400).json({ message: "UserId or SessionId is required" });
+        }
+
+        let slides;
+        if (userId) {
+            // Get slides for logged-in user
+            const user = await User.findById(userId).populate('slides');
+            if (!user) {
+                return res.status(404).json({ message: "User not found" });
+            }
+            slides = user.slides;
+        } else {
+            // Get slides for guest session
+            const slideDeck = await SlideDeck.findOne({ sessionId });
+            if (!slideDeck) {
+                return res.status(404).json({ message: "Session not found" });
+            }
+            slides = slideDeck.slides;
+        }
+
+        return res.status(200).json({
+            message: "Slides retrieved successfully",
+            slides: slides
+        });
+
+    } catch (error) {
+        console.error("Error retrieving slides:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
 }
 
-const guestToUser = async(req, res) => {
-  
-}
+
 
 
 // listUserSlideDecks(userId || sessionId)
 
-export { createSlide, showSlides, updateSlide, deleteSlide, guestToUser }
+export { createSlide, showSlides, updateSlide, deleteSlide }

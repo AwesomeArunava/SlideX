@@ -108,6 +108,7 @@ const Presentation = () => {
                   <img src={image} alt="Create slide" />
                 </div>
               }
+              onClick={createNewSlide}
             >
               <Meta
                 title={
