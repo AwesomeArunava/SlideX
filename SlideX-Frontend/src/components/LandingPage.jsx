@@ -1,12 +1,23 @@
-import React from "react";
-import { Button } from "antd";
-import { MenuOutlined } from "@ant-design/icons";
+import React, { useState, useEffect } from "react";
+import { Button, Avatar, Dropdown, message } from "antd";
+import { MenuOutlined, UserOutlined } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
 import card1Image from "../assets/ai-powered-creativity2.png"
 import card2Image from "../assets/smart-template2.png"
 import card3Image from "../assets/no-design-skill-required.png"
 import heroBackgroundImage from "../assets/hero-background.png"
 import {Link} from "react-router-dom"
 const LandingPage = () => {
+  const [user, setUser] = useState(null);
+  const [messageApi, contextHolder] = message.useMessage();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
   return (
     <div className="min-h-screen flex flex-col font-sans">
       {/* Navbar */}
@@ -22,12 +33,54 @@ const LandingPage = () => {
           <a href="#contact" className="hover:text-[#E67423]">Contact</a>
         </div>
         <div className="hidden md:flex gap-3">
-          <Link to="/login">
-          <Button type="default" className="border-[#E67423] text-[#E67423] hover:!border-orange-500 hover:!text-orange-500">Login</Button>
-          </Link>
-          <Link to="/register">
-          <Button type="primary" style={{ backgroundColor: "#E67423", borderColor: "#E67423" }}>Sign Up</Button>
-          </Link>
+          {contextHolder}
+          {user ? (
+            <Dropdown
+              menu={{
+                items: [
+                  {
+                    key: '1',
+                    label: (
+                      <div className="px-4 py-2">
+                        <p className="font-semibold">{user.name}</p>
+                        <p className="text-gray-600 text-sm">{user.email}</p>
+                      </div>
+                    ),
+                  },
+                  {
+                    type: 'divider',
+                  },
+                  {
+                    key: '2',
+                    label: 'Logout',
+                    onClick: () => {
+                      localStorage.removeItem('user');
+                      localStorage.removeItem('authToken');
+                      messageApi.success('Logged out successfully');
+                      navigate('/');
+                    },
+                  }
+                ],
+              }}
+              trigger={['click']}
+            >
+              <Avatar
+                className="bg-[#E67423] cursor-pointer"
+                style={{ backgroundColor: '#E67423' }}
+              >
+                {user.name[0].toUpperCase()}
+              </Avatar>
+            </Dropdown>
+          ) : (
+            <>
+              <Link to="/login">
+                <Button type="default" className="border-[#E67423] text-[#E67423] hover:!border-orange-500 hover:!text-orange-500">Login</Button>
+              </Link>
+              <Link to="/register">
+                <Button type="primary" style={{ backgroundColor: "#E67423", borderColor: "#E67423" }}>Sign Up</Button>
+              </Link>
+            </>
+          )}
         </div>
         <div className="md:hidden">
           <MenuOutlined className="text-2xl text-[#E67423]" />

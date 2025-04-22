@@ -5,7 +5,7 @@ import { SearchOutlined, UserOutlined, MoreOutlined } from "@ant-design/icons";
 import "antd/dist/reset.css";
 import image from "../assets/createNewSlide.png";
 // import './tailwind.css';
-
+import { useState, useEffect } from "react";
 const { Title, Text } = Typography;
 const { Meta } = Card;
 
