@@ -14,18 +14,12 @@ const LoginPage = () => {
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      // Get sessionId from localStorage if exists (for guest conversion)
-      const sessionId = localStorage.getItem('sessionId');
-      
       const response = await fetch('http://localhost:3000/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...values,
-          ...(sessionId ? { sessionId } : {}) // Include sessionId if exists
-        }),
+        body: JSON.stringify(values),
       });
 
       const data = await response.json();
@@ -38,34 +32,24 @@ const LoginPage = () => {
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       
-      // If there was a guest session, migrate slides to new user
+      // Check for guest session to migrate
+      const sessionId = localStorage.getItem('sessionId');
       if (sessionId) {
-        try {
-          const migrateResponse = await fetch('http://localhost:3000/api/auth/guest-to-user', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${data.token}`
-            },
-            body: JSON.stringify({
-              sessionId,
-              userId: data.user.id
-            })
-          });
-          
-          if (!migrateResponse.ok) {
-            throw new Error('Failed to migrate guest slides');
-          }
-          
-          localStorage.removeItem('sessionId');
-          messageApi.success('Login successful! Your guest slides have been migrated.');
-        } catch (migrateError) {
-          console.error('Migration error:', migrateError);
-          messageApi.warning('Login successful, but could not migrate guest slides');
-        }
-      } else {
-        messageApi.success('Login successful!');
+        await fetch('http://localhost:3000/api/auth/guest-to-user', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${data.token}`
+          },
+          body: JSON.stringify({
+            sessionId,
+            userId: data.user.id
+          })
+        });
+        localStorage.removeItem('sessionId');
       }
+      
+      messageApi.success('Login successful!');
       
       setTimeout(() => navigate('/dashboard'), 1500);
     } catch (error) {

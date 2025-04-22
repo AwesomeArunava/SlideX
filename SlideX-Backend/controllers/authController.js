@@ -45,13 +45,6 @@ const registerWithEmail = async (req, res) => {
         
         // sendVerificationEmail("arunavadebnath2002@gmail.com", "123456789")
         // console.log("hello after");
-      // If sessionId was provided, migrate guest slides
-      if (req.body.sessionId) {
-        await guestToUser({ 
-          body: { sessionId: req.body.sessionId, userId: saveUser._id } 
-        }, { json: () => {} });
-      }
-
       return res.status(201).json({
         message: "User registered successfully. Please check your email to verify your account.",
       });
@@ -170,13 +163,6 @@ const verifyEmail = async (req, res) => {
       await user.save();
   
       // 6. Send response
-      // If sessionId was provided, migrate guest slides
-      if (req.body.sessionId) {
-        await guestToUser({ 
-          body: { sessionId: req.body.sessionId, userId: user._id } 
-        }, { json: () => {} });
-      }
-
       return res.status(200).json({
         message: "Login successful",
         token, // frontend stores this in localStorage
