@@ -93,6 +93,33 @@ const Editor = () => {
     loadSlide();
   }, [slideId, dispatch]);
 
+  // Auto-save when slides change
+  const { slides, currentIndex } = useSelector((state) => state.slides);
+  useEffect(() => {
+    if (!loading) { // Only save after initial load
+      const currentSlide = slides[currentIndex];
+      if (currentSlide?.elements) {
+        fetch('http://localhost:3000/api/slide/updateSlide', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            slideId: slideId,
+            slideIndex: currentIndex,
+            elements: currentSlide.elements
+          }),
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to save slide');
+          }
+        })
+        .catch(error => console.error('Error saving slide:', error));
+      }
+    }
+  }, [slides, currentIndex, slideId, loading]);
+
   if (loading) {
     return <div>Loading slide...</div>;
   }
