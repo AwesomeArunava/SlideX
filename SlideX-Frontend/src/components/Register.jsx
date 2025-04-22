@@ -19,12 +19,18 @@ const RegisterPage = () => {
     console.log("value:", values)
     setLoading(true);
     try {
+      // Get sessionId from localStorage if exists (for guest conversion)
+      const sessionId = localStorage.getItem('sessionId');
+      
       const response = await fetch('http://localhost:3000/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          ...values,
+          ...(sessionId ? { sessionId } : {}) // Include sessionId if exists
+        }),
       });
 
       const data = await response.json();
@@ -34,7 +40,36 @@ const RegisterPage = () => {
         throw new Error(data.message || 'Registration failed');
       }
       console.log("Registration successful, now showing message");
-      messageApi.success('Registration successful! Please check your email to verify your account.');
+      
+      // If there was a guest session, migrate slides to new user
+      if (sessionId) {
+        try {
+          const migrateResponse = await fetch('http://localhost:3000/api/auth/guest-to-user', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${data.token}`
+            },
+            body: JSON.stringify({
+              sessionId,
+              userId: data.user.id
+            })
+          });
+          
+          if (!migrateResponse.ok) {
+            throw new Error('Failed to migrate guest slides');
+          }
+          
+          localStorage.removeItem('sessionId');
+          messageApi.success('Registration successful! Your guest slides have been migrated. Please check your email to verify your account.');
+        } catch (migrateError) {
+          console.error('Migration error:', migrateError);
+          messageApi.warning('Registration successful, but could not migrate guest slides. Please check your email to verify your account.');
+        }
+      } else {
+        messageApi.success('Registration successful! Please check your email to verify your account.');
+      }
+      
       setTimeout(() => navigate('/login'), 2000);
     } catch (error) {
       console.log("value:", values)
