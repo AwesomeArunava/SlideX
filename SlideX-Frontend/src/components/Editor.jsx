@@ -62,7 +62,7 @@ const Editor = () => {
         const sessionId = localStorage.getItem('sessionId');
         
         // Load existing slides
-        const response = await fetch('/api/slide/showSlides', {
+        const response = await fetch('http://localhost:3000/api/slide/showSlides', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
