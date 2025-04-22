@@ -61,27 +61,37 @@ const Editor = () => {
         const userId = localStorage.getItem('userId');
         const sessionId = localStorage.getItem('sessionId');
         
-        // Load existing slides
-        const response = await fetch('http://localhost:3000/api/slide/showSlides', {
-          method: 'POST',
+        // Load slide deck by ID
+        const response = await fetch(`http://localhost:3000/api/slide/${slideId}`, {
+          method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ 
-            userId: userId || null,
-            sessionId: userId ? null : sessionId
-          }),
+          }
         });
 
-        const { slides } = await response.json();
-        const currentSlide = slides.find(slide => slide._id === slideId);
-
-        if (currentSlide) {
-          dispatch(setCurrentIndex(0));
-          dispatch(updateSlideJson({
-            slideIndex: 0,
-            canvasJson: currentSlide.elements
-          }));
+        const slideDeck = await response.json();
+        
+        if (slideDeck?.slides) {
+          // Initialize Redux state with the full slides array from the deck
+          dispatch({
+            type: 'slides/setSlides',
+            payload: slideDeck.slides.map(slide => ({
+              elements: slide.elements,
+              history: [],
+              redoStack: []
+            }))
+          });
+          
+          // Set initial current index
+          const initialIndex = slideDeck.slides.length > 0 ? 0 : -1;
+          dispatch(setCurrentIndex(initialIndex));
+          
+          if (initialIndex !== -1) {
+            dispatch(updateSlideJson({
+              slideIndex: initialIndex,
+              canvasJson: slideDeck.slides[initialIndex].elements
+            }));
+          }
         }
       } catch (error) {
         console.error('Error loading slide:', error);
