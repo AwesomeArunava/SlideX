@@ -11,7 +11,7 @@ const autoSaveMiddleware = (store) => (next) => (action) => {
     if (currentSlide?._id) {
       store.dispatch(saveSlideToBackend({
         slideDeckId: slideId,
-        slides: state.slides 
+        slides: state.slides
       }));
     }
   }
