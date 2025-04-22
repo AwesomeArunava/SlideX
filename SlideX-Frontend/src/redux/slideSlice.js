@@ -2,14 +2,14 @@ import { createSlice, current, createAsyncThunk } from "@reduxjs/toolkit";
 
 export const saveSlideToBackend = createAsyncThunk(
   'slides/saveSlideToBackend',
-  async ({ slideDeckId, slideIndex, elements }) => {
+  async ({ slideDeckId, slides }) => {
     try {
       const response = await fetch('/api/slide/updateSlide', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ slideDeckId, slideIndex, elements }),
+        body: JSON.stringify({ slideDeckId, slides }),
       });
       if (!response.ok) {
         throw new Error('Failed to save slide');

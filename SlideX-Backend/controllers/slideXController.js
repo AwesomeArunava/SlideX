@@ -46,21 +46,15 @@ const createSlide = async (req, res) => {
 
 
 const updateSlide = async(req, res) => {
-    const { slideDeckId, slideIndex, elements } = req.body;
+    const { slideDeckId, slides } = req.body;
     try {
-        if (!slideDeckId || slideIndex === undefined || !elements) {
-            return res.status(400).json({ message: "SlideDeck ID, slide index, and elements are required" }); 
+        if (!slideDeckId || !slides) {
+            return res.status(400).json({ message: "SlideDeck ID and slides array are required" }); 
         }
-
-        const updateQuery = {
-            $set: {
-                [`slides.${slideIndex}.elements`]: elements
-            }
-        };
 
         const updatedSlideDeck = await SlideDeck.findByIdAndUpdate(
             slideDeckId,
-            updateQuery,
+            { $set: { slides: slides } },
             { new: true }
         );
 
