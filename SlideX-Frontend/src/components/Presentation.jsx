@@ -55,7 +55,7 @@ const Presentation = () => {
       }
 
       messageApi.success('New slide created! Redirecting to editor...');
-      setTimeout(() => navigate('/editor'), 1500);
+      setTimeout(() => navigate(`/editor/${data.newSlideId}`), 1500);
     } catch (error) {
       messageApi.error(error.message || 'Failed to create new slide');
     }

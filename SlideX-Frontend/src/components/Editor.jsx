@@ -51,6 +51,7 @@ const layoutStyle = {
 };
 const Editor = () => {
   const { id: slideId } = useParams();
+  console.log("SlideId: ", slideId)
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(true);
 
