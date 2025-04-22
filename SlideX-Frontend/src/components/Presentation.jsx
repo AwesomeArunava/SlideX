@@ -25,6 +25,14 @@ const recentPresentations = [
 ];
 
 const Presentation = () => {
+  const [user, setUser] = useState(null);
+  
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
   const createNewSlide = async () => {
     try {
       const user = JSON.parse(localStorage.getItem('user'));
@@ -85,10 +93,42 @@ const Presentation = () => {
         /> */}
 
         <Space>
-          <Avatar
-            icon={<UserOutlined />}
-            className="bg-[#E67423] cursor-pointer"
-          />
+          <Dropdown
+            menu={{
+              items: [
+                {
+                  key: '1',
+                  label: (
+                    <div className="px-4 py-2">
+                      <p className="font-semibold">{user?.name}</p>
+                      <p className="text-gray-600 text-sm">{user?.email}</p>
+                    </div>
+                  ),
+                },
+                {
+                  type: 'divider',
+                },
+                {
+                  key: '2',
+                  label: 'Logout',
+                  onClick: () => {
+                    localStorage.removeItem('user');
+                    localStorage.removeItem('authToken');
+                    messageApi.success('Logged out successfully');
+                    navigate('/');
+                  },
+                }
+              ],
+            }}
+            trigger={['click']}
+          >
+            <Avatar
+              className="bg-[#E67423] cursor-pointer"
+              style={{ backgroundColor: '#E67423' }}
+            >
+              {user ? user.name[0].toUpperCase() : <UserOutlined />}
+            </Avatar>
+          </Dropdown>
         </Space>
       </nav>
 

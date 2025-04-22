@@ -107,8 +107,9 @@ const Editor = () => {
   const { slides, currentIndex } = useSelector((state) => state.slides);
   useEffect(() => {
     if (!loading) { // Only save after initial load
-      const currentSlide = slides[currentIndex];
-      if (currentSlide?.elements) {
+      // const currentSlide = slides[currentIndex];
+      console.log("slide update")
+      if (true) {
         fetch('http://localhost:3000/api/slide/updateSlide', {
           method: 'PUT',
           headers: {
@@ -127,7 +128,7 @@ const Editor = () => {
         .catch(error => console.error('Error saving slide:', error));
       }
     }
-  }, [slides, currentIndex, slideId, loading]);
+  }, [slides]);
 
   if (loading) {
     return <div>Loading slide...</div>;
