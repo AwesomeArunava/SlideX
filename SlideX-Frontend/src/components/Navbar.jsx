@@ -437,6 +437,13 @@ const Navbar = () => {
   
 
   const generatePdfFromImages = async () => {
+    const isLoggedIn = localStorage.getItem('token'); // Check if user is logged in
+    
+    if (!isLoggedIn) {
+      alert('Please register or login to download PDF');
+      window.location.href = '/register'; // Redirect to register page
+      return;
+    }
 
     const images = await generateHighQualityImages(slides);
     console.log(images)
@@ -464,6 +471,14 @@ const Navbar = () => {
   };
 
   const generatePPTXFromImages = async() => {
+    const isLoggedIn = localStorage.getItem('token'); // Check if user is logged in
+    
+    if (!isLoggedIn) {
+      alert('Please register or login to download PPTX');
+      window.location.href = '/register'; // Redirect to register page
+      return;
+    }
+
     const imageDataArray = await generateHighQualityImages(slides);
     const pptx = new PptxGenJS();
     
