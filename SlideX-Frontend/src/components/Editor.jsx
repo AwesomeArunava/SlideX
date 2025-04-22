@@ -105,7 +105,7 @@ const Editor = () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            slideId: slideId,
+            slideDeckId: slideId,  // Changed parameter name to match backend
             slideIndex: currentIndex,
             elements: currentSlide.elements
           }),
