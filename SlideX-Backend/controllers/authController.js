@@ -45,9 +45,16 @@ const registerWithEmail = async (req, res) => {
         
         // sendVerificationEmail("arunavadebnath2002@gmail.com", "123456789")
         // console.log("hello after");
-       return res.status(201).json({
-            message: "User registered successfully. Please check your email to verify your account.",
-          });
+      // If sessionId was provided, migrate guest slides
+      if (req.body.sessionId) {
+        await guestToUser({ 
+          body: { sessionId: req.body.sessionId, userId: saveUser._id } 
+        }, { json: () => {} });
+      }
+
+      return res.status(201).json({
+        message: "User registered successfully. Please check your email to verify your account.",
+      });
         // return res.status(201).json({message:"User created successfuly."})
 
     } catch {
@@ -163,6 +170,13 @@ const verifyEmail = async (req, res) => {
       await user.save();
   
       // 6. Send response
+      // If sessionId was provided, migrate guest slides
+      if (req.body.sessionId) {
+        await guestToUser({ 
+          body: { sessionId: req.body.sessionId, userId: user._id } 
+        }, { json: () => {} });
+      }
+
       return res.status(200).json({
         message: "Login successful",
         token, // frontend stores this in localStorage
@@ -198,7 +212,28 @@ const verifyEmail = async (req, res) => {
   };
 
   const guestToUser = async(req, res) => {
-  
+    try {
+      const { sessionId, userId } = req.body;
+
+      if (!sessionId || !userId) {
+        return res.status(400).json({ message: "Session ID and User ID are required" });
+      }
+
+      // Update all slides with this sessionId to belong to the new user
+      const result = await SlideDeck.updateMany(
+        { sessionId },
+        { $set: { owner: userId, sessionId: null } }
+      );
+
+      return res.status(200).json({
+        message: "Slides successfully migrated to user account",
+        updatedCount: result.modifiedCount
+      });
+
+    } catch (error) {
+      console.error("Guest conversion error:", error);
+      return res.status(500).json({ message: "Error migrating guest slides" });
+    }
   }
 
 
