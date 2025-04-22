@@ -71,6 +71,22 @@ const updateSlide = async(req, res) => {
     }
 }
 
+const getSlideDeck = async (req, res) => {
+    try {
+        const { id: slideDeckId } = req.params;
+        
+        const slideDeck = await SlideDeck.findById(slideDeckId);
+        if (!slideDeck) {
+            return res.status(404).json({ message: "Slide deck not found" });
+        }
+
+        return res.status(200).json(slideDeck);
+    } catch (error) {
+        console.error("Error getting slide deck:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
 const deleteSlide = async (req, res) => {
     const { userId, slideId } = req.body;
   
@@ -138,4 +154,4 @@ const showSlides = async(req, res) => {
 
 // listUserSlideDecks(userId || sessionId)
 
-export { createSlide, showSlides, updateSlide, deleteSlide }
+export { createSlide, showSlides, updateSlide, deleteSlide, getSlideDeck }

@@ -43,12 +43,15 @@ const slideSlice = createSlice({
   name: "slides",
   initialState,
   reducers: {
+    setSlides: (state, action) => {
+      state.slides = action.payload;
+    },
     addSlide: (state, action) => {
       state.slides.push({
         id: state.slides.length + 1,
         elements: action.payload || {},
         history: [],
-        redoStack:[], // fallback to empty if not provided
+        redoStack: [], // fallback to empty if not provided
       });
     },
     deleteSlide:(state, action) => {
