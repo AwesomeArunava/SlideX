@@ -109,10 +109,47 @@ const slideSlice = createSlice({
     },
     addSlideAsImage: (state, action) =>{
       state.slidesAsImg = action.payload;
+    },
+    reorderSlides: (state, action) => {
+      const { fromIndex, toIndex } = action.payload;
+      const [removed] = state.slides.splice(fromIndex, 1);
+      state.slides.splice(toIndex, 0, removed);
+      
+      // Update currentIndex if needed
+      if (state.currentIndex === fromIndex) {
+        state.currentIndex = toIndex;
+      } else if (
+        fromIndex < state.currentIndex && 
+        toIndex >= state.currentIndex
+      ) {
+        state.currentIndex--;
+      } else if (
+        fromIndex > state.currentIndex && 
+        toIndex <= state.currentIndex
+      ) {
+        state.currentIndex++;
+      }
+      
+      // Also reorder slidesAsImg array to keep in sync
+      if (state.slidesAsImg.length > fromIndex && state.slidesAsImg.length > toIndex) {
+        const [imgRemoved] = state.slidesAsImg.splice(fromIndex, 1);
+        state.slidesAsImg.splice(toIndex, 0, imgRemoved);
+      }
     }
   },
 });
 
-export const { addSlide, updateSlideJson, setCurrentSlide, setCurrentIndex, updateHistory, undoHistory, redoHistory, deleteSlide, addSlideAsImage } = slideSlice.actions;
+export const { 
+  addSlide, 
+  updateSlideJson, 
+  setCurrentSlide, 
+  setCurrentIndex, 
+  updateHistory, 
+  undoHistory, 
+  redoHistory, 
+  deleteSlide, 
+  addSlideAsImage,
+  reorderSlides 
+} = slideSlice.actions;
 export default slideSlice.reducer;
 

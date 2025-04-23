@@ -1,10 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import * as fabric  from "fabric"; // important: destructure 'fabric' properly
-import { setCurrentIndex, updateHistory, deleteSlide, addSlideAsImage  } from "../redux/slideSlice";
+import * as fabric from "fabric";
+import { 
+  setCurrentIndex, 
+  updateHistory, 
+  deleteSlide, 
+  addSlideAsImage,
+  reorderSlides 
+} from "../redux/slideSlice";
 import slidex from "../assets/slidex.png";
 import { MdDelete } from "react-icons/md";
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 const Slide = () => {
   const slides = useSelector((state) => state.slides.slides);
@@ -138,46 +145,70 @@ const Slide = () => {
     }))
   } 
 
-  return (
-
-
-    <div className="p-2 overflow-auto">
+  const onDragEnd = (result) => {
+    if (!result.destination) return;
     
-  {thumbnails.map((src, index) => (
-    <div
-      key={index}
-      className="flex mb-2 items-center space-x-2 cursor-pointer"
-    >
-      <div className="w-6 text-center">{index + 1}</div>
+    const { source, destination } = result;
+    if (source.index === destination.index) return;
 
-      <div
-        className={`group relative w-[200px] h-[120px] border bg-white shadow overflow-hidden ${
-          index === selectedIndex
-            ? "border-blue-600 shadow-lg ring-2 ring-blue-300"
-            : "border-gray-300"
-        }`}
-        onClick={() => handleSlideClick(index)}
-      >
+    dispatch(reorderSlides({
+      fromIndex: source.index,
+      toIndex: destination.index
+    }));
+  };
+
+  return (
+    <div className="p-2 overflow-auto">
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Droppable droppableId="slides">
+          {(provided) => (
+            <div {...provided.droppableProps} ref={provided.innerRef}>
+              {thumbnails.map((src, index) => (
+                <Draggable key={index} draggableId={`slide-${index}`} index={index}>
+                  {(provided) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      {...provided.dragHandleProps}
+                      className="flex mb-2 items-center space-x-2 cursor-pointer"
+                    >
+                      <div className="w-6 text-center">{index + 1}</div>
+
+                      <div
+                        className={`group relative w-[200px] h-[120px] border bg-white shadow overflow-hidden ${
+                          index === selectedIndex
+                            ? "border-blue-600 shadow-lg ring-2 ring-blue-300"
+                            : "border-gray-300"
+                        }`}
+                        onClick={() => handleSlideClick(index)}
+                      >
         {/* Delete Icon - Visible on Hover */}
-        <button
-          className="absolute top-1 right-1 text-red-600 bg-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
-          onClick={(e) => {
-            e.stopPropagation(); // prevent triggering slide click
-            handleDelete(index);
-          }}
-        >
-          <MdDelete size={18} className="cursor-pointer"/>
-        </button>
+                        <button
+                          className="absolute top-1 right-1 text-red-600 bg-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(index);
+                          }}
+                        >
+                          <MdDelete size={18} className="cursor-pointer"/>
+                        </button>
 
-        <img
-          src={src}
-          alt={`Slide ${index + 1}`}
-          className="w-full h-full object-contain"
-        />
-      </div>
+                        <img
+                          src={src}
+                          alt={`Slide ${index + 1}`}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
     </div>
-  ))}
-</div>
   );
 };
 
