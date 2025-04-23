@@ -152,4 +152,29 @@ const showSlides = async(req, res) => {
 
 // listUserSlideDecks(userId || sessionId)
 
-export { createSlide, showSlides, updateSlide, deleteSlide, getSlideDeck }
+const updatePreview = async (req, res) => {
+  try {
+    const { slideId, previewImage } = req.body;
+    console.log("image: ", previewImage)
+    if (!slideId || !previewImage) {
+      return res.status(400).json({ message: "Slide ID and preview image are required" });
+    }
+
+    const updatedSlide = await SlideDeck.findByIdAndUpdate(
+      slideId,
+      { $set: { previewImage } },
+      { new: true }
+    );
+
+    if (!updatedSlide) {
+      return res.status(404).json({ message: "Slide not found" });
+    }
+
+    return res.status(200).json({ message: "Preview image updated" });
+  } catch (error) {
+    console.error("Error updating preview image:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export { createSlide, showSlides, updateSlide, deleteSlide, getSlideDeck, updatePreview }

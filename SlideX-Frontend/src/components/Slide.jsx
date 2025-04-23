@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import * as fabric  from "fabric"; // important: destructure 'fabric' properly
 import { setCurrentIndex, updateHistory, deleteSlide, addSlideAsImage  } from "../redux/slideSlice";
@@ -15,10 +16,28 @@ const Slide = () => {
 
 
 
+  const { id: slideDeckId } = useParams();
+
   useEffect(() => {
-
-
-    // using multiplaier
+    const updatePreviewImage = async (imageUrl) => {
+      try {
+        const response = await fetch('http://localhost:3000/api/slide/updatePreview', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          },
+          body: JSON.stringify({
+            slideId: slideDeckId, // Using ID from URL params
+            previewImage: imageUrl
+          })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message);
+      } catch (error) {
+        console.error('Failed to update preview image:', error);
+      }
+    };
 
     const generateThumbnails = async () => {
       const fullWidth = 1280;
@@ -75,8 +94,12 @@ const Slide = () => {
       );
     
       setThumbnails(imgs);
-      // console.log("images", imgs)
-      dispatch(addSlideAsImage(imgs))
+      dispatch(addSlideAsImage(imgs));
+      // Update preview image with first thumbnail if available
+      if (imgs.length > 0) {
+        console.log("image:",imgs[0])
+        await updatePreviewImage(imgs[0]);
+      }
     };
     
      

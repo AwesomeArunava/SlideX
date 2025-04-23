@@ -285,7 +285,15 @@ const Presentation = () => {
                 onClick={() => handleSlideClick(slide._id)}
                 cover={
                   <div className="h-48 bg-gray-100 rounded-t-xl flex items-center justify-center">
-                    <img src={image} alt="" />
+                    {slide.previewImage ? (
+                      <img 
+                        src={slide.previewImage} 
+                        alt="Slide preview" 
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <img src={image} alt="Default slide" />
+                    )}
                   </div>
                 }
                 actions={[

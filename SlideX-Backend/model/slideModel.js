@@ -50,6 +50,10 @@ const slideDeckSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  previewImage: {
+    type: String,
+    default: null,
+  },
 });
 
 export default mongoose.model('SlideDeck', slideDeckSchema);
