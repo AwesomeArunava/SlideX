@@ -1,29 +1,61 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Menu, theme, Tooltip, Dropdown, Button } from "antd";
-import slidex from "../assets/slidex.png";
-import { FaCircle, FaPencilAlt, FaShapes } from "react-icons/fa";
-import { MdFormatShapes } from "react-icons/md";
-import { FaRegImage } from "react-icons/fa";
-import { MdFormatColorText } from "react-icons/md";
-import { GrUndo, GrRedo } from "react-icons/gr";
-import { MdDelete } from "react-icons/md";
-import { FaPlus } from "react-icons/fa";
-import { CiExport } from "react-icons/ci";
-// import ColorPicker from "./ColorPicker";
-import {ColorPicker} from "antd";
-import { jsPDF } from "jspdf";
-import PptxGenJS from "pptxgenjs";
 import { useSelector, useDispatch } from "react-redux";
+import { Layout, Menu, Button, Input, message, ColorPicker, Dropdown } from "antd";
 import * as fabric from "fabric";
 import { addSlide, updateHistory, undoHistory, redoHistory } from "../redux/slideSlice";
+import slidex from "../assets/slidex.png";
+import { FaPlus, FaPencilAlt, FaShapes, FaRegImage } from "react-icons/fa";
+import { MdFormatShapes, MdFormatColorText, MdDelete } from "react-icons/md";
+import { GrUndo, GrRedo } from "react-icons/gr";
+import { CiExport } from "react-icons/ci";
+import { jsPDF } from "jspdf";
+import PptxGenJS from "pptxgenjs";
+
 const { Header } = Layout;
 
 const Navbar = () => {
-  const editor = useSelector((state) => state.editor.editor);
-  const slides = useSelector((state) => state.slides.slides);
-  const currentSlide = useSelector((state) => state.slides.currentSlide);
-  const currentIndex = useSelector((state) => state.slides.currentIndex);
-  const slidesAsImg = useSelector((state)=> state.slides.slidesAsImg);
+  const [messageApi, contextHolder] = message.useMessage();
+  const [title, setTitle] = useState('');
+  
+  const { 
+    slides, 
+    currentIndex, 
+    currentSlide, 
+    slidesAsImg 
+  } = useSelector((state) => state.slides);
+  
+  const { editor } = useSelector((state) => state.editor);
+
+  useEffect(() => {
+    setTitle(slides[currentIndex]?.title || 'Untitled Presentation');
+  }, [currentIndex, slides]);
+
+  const updateSlideTitle = (newTitle) => {
+    setTitle(newTitle);
+  };
+
+  const saveSlideTitle = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/slide/updateTitle', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify({
+          slideId: slides[currentIndex]._id,
+          title: title
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message);
+      
+      messageApi.success('Title updated successfully');
+    } catch (error) {
+      messageApi.error(error.message || 'Failed to update title');
+    }
+  };
   // const historyState = useSelector((state)=> state.slides.slides.history)
   // const [history, setHistory] = useState([]);
   // const [redoStack, setRedoStack] = useState([]);
@@ -570,39 +602,50 @@ const colorPick = [{key:"color_picker", label:( <div><ColorPicker defaultValue="
   
 
   return (
-    <Header style={{ background: "#001529", padding: "0" }}>
-  <div style={{ 
-    display: "flex", 
-    justifyContent: "space-evenly", 
-    alignItems: "center", 
-    width: "100%" 
-  }}>
+    <>
+      {contextHolder}
+      <Header style={{ background: "#001529", padding: "0" }}>
+        <div style={{ 
+          display: "flex", 
+          justifyContent: "space-evenly", 
+          alignItems: "center", 
+          width: "100%" 
+        }}>
+          <div className="flex items-center">
+            <img src={slidex} alt="slidex-logo" width={100} className="ml-4"/>
+            <div className="ml-4">
+              <Input 
+                value={slides[currentIndex]?.title || 'Untitled Presentation'}
+                onChange={(e) => updateSlideTitle(e.target.value)}
+                onPressEnter={() => saveSlideTitle()}
+                onBlur={() => saveSlideTitle()}
+                bordered={false}
+                className="text-white font-medium text-lg"
+                style={{ color: 'white', width: '300px' }}
+              />
+            </div>
+          </div>
+        
+          <Menu
+            theme="dark"
+            mode="horizontal"
+            defaultSelectedKeys={[""]}
+            items={items}
+            style={{ flex: 1, justifyContent: "center", display: "flex" }}
+            selectedKeys={[]}
+          />
 
-      <img src={slidex} alt="slidex-logo" width={100} className="ml-4"/>
-   
-   
-    
-
-    <Menu
-      theme="dark"
-      mode="horizontal"
-      defaultSelectedKeys={[""]}
-      items={items}
-      style={{ flex: 1, justifyContent: "center", display: "flex" }}
-      selectedKeys={[]}
-    />
-
-<Menu
-  theme="dark"
-  mode="horizontal"
-  defaultSelectedKeys={[""]}
-  items={rightSideMenuItems}
-  className="justify-end mr-8 flex"
-  // no need for inline styles if using Tailwind
-  selectedKeys={[]}
-/>
-  </div>
-</Header>
+          <Menu
+            theme="dark"
+            mode="horizontal"
+            defaultSelectedKeys={[""]}
+            items={rightSideMenuItems}
+            className="justify-end mr-8 flex"
+            selectedKeys={[]}
+          />
+        </div>
+      </Header>
+    </>
   );
 };
 

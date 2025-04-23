@@ -177,4 +177,29 @@ const updatePreview = async (req, res) => {
   }
 };
 
-export { createSlide, showSlides, updateSlide, deleteSlide, getSlideDeck, updatePreview }
+const updateTitle = async (req, res) => {
+  try {
+    const { slideId, title } = req.body;
+    
+    if (!slideId || !title) {
+      return res.status(400).json({ message: "Slide ID and title are required" });
+    }
+
+    const updatedSlide = await SlideDeck.findByIdAndUpdate(
+      slideId,
+      { $set: { title } },
+      { new: true }
+    );
+
+    if (!updatedSlide) {
+      return res.status(404).json({ message: "Slide not found" });
+    }
+
+    return res.status(200).json({ message: "Title updated successfully" });
+  } catch (error) {
+    console.error("Error updating title:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export { createSlide, showSlides, updateSlide, deleteSlide, getSlideDeck, updatePreview, updateTitle }
