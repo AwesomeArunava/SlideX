@@ -26,13 +26,73 @@ const recentPresentations = [
 
 const Presentation = () => {
   const [user, setUser] = useState(null);
+  const [userSlides, setUserSlides] = useState([]);
+  const [loading, setLoading] = useState(false);
   
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
+      fetchUserSlides(parsedUser.id);
+    } else {
+      const sessionId = localStorage.getItem('sessionId');
+      if (sessionId) {
+        fetchSessionSlides(sessionId);
+      }
     }
   }, []);
+
+  const fetchUserSlides = async (userId) => {
+    try {
+      setLoading(true);
+      const authToken = localStorage.getItem('authToken');
+      const response = await fetch('http://localhost:3000/api/slide/showSlides', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+        },
+        body: JSON.stringify({ userId })
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Failed to fetch slides');
+      
+      setUserSlides(data.slides || []);
+    } catch (error) {
+      messageApi.error(error.message || 'Failed to load slides');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchSessionSlides = async (sessionId) => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:3000/api/slide/showSlides', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ sessionId })
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Failed to fetch slides');
+      
+      setUserSlides(data.slides || []);
+    } catch (error) {
+      messageApi.error(error.message || 'Failed to load slides');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSlideClick = (slideId) => {
+    messageApi.success('Redirecting to editor...');
+    setTimeout(() => navigate(`/editor/${slideId}`), 1500);
+  };
   const createNewSlide = async () => {
     try {
       const user = JSON.parse(localStorage.getItem('user'));
@@ -70,12 +130,46 @@ const Presentation = () => {
   };
   const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
-  const menuItems = [
-    { key: "1", label: "Open" },
-    { key: "2", label: "Make a copy" },
-    { key: "3", label: "Download" },
-    { key: "4", label: "Remove" },
+  const menuItems = (slideId) => [
+    { 
+      key: "1", 
+      label: "Open",
+      onClick: () => handleSlideClick(slideId)
+    },
+    { 
+      key: "4", 
+      label: "Remove",
+      onClick: () => handleDeleteSlide(slideId)
+    },
   ];
+
+  const handleDeleteSlide = async (slideId) => {
+    try {
+      const authToken = localStorage.getItem('authToken');
+      const userId = user?.id;
+      
+      if (!userId) {
+        throw new Error('You must be logged in to delete slides');
+      }
+
+      const response = await fetch('http://localhost:3000/api/slide/deleteSlide', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+        },
+        body: JSON.stringify({ userId, slideId })
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Failed to delete slide');
+      
+      messageApi.success('Slide deleted successfully');
+      fetchUserSlides(userId);
+    } catch (error) {
+      messageApi.error(error.message || 'Failed to delete slide');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#f7f9fa] to-gray-100">
@@ -175,32 +269,43 @@ const Presentation = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {recentPresentations.map((presentation) => (
-            <Card
-              key={presentation.title}
-              hoverable
-              className="rounded-xl"
-              cover={
-                <div className="h-48 bg-gray-100 rounded-t-xl flex items-center justify-center">
-                <img src={image} alt="" />
-                </div>
-              }
-              actions={[
-                <Dropdown menu={{ items: menuItems }} key="more">
-                  <MoreOutlined className="text-gray-400 hover:text-[#E67423]" />
-                </Dropdown>,
-              ]}
-            >
-              <Meta
-                title={presentation.title}
-                description={
-                  <Text type="secondary" className="text-xs">
-                    {presentation.date}
-                  </Text>
+          {loading ? (
+            <div>Loading slides...</div>
+          ) : userSlides.length > 0 ? (
+            userSlides.map((slide) => (
+              <Card
+                key={slide._id}
+                hoverable
+                className="rounded-xl"
+                onClick={() => handleSlideClick(slide._id)}
+                cover={
+                  <div className="h-48 bg-gray-100 rounded-t-xl flex items-center justify-center">
+                    <img src={image} alt="" />
+                  </div>
                 }
-              />
-            </Card>
-          ))}
+                actions={[
+                  <Dropdown menu={{ items: menuItems(slide._id) }} key="more">
+                    <MoreOutlined className="text-gray-400 hover:text-[#E67423]" />
+                  </Dropdown>,
+                ]}
+              >
+                <Meta
+                  title={slide.title || 'Untitled Presentation'}
+                  description={
+                    <Text type="secondary" className="text-xs">
+                      {new Date(slide.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                      })}
+                    </Text>
+                  }
+                />
+              </Card>
+            ))
+          ) : (
+            <div>No slides found. Create your first presentation!</div>
+          )}
         </div>
       </section>
     </div>
