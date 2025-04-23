@@ -80,7 +80,7 @@ const Presentation = () => {
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Failed to fetch slides');
-      
+      console.log("slides: ", data.slides)
       setUserSlides(data.slides || []);
     } catch (error) {
       messageApi.error(error.message || 'Failed to load slides');
@@ -261,7 +261,12 @@ const Presentation = () => {
       <section className="p-8 pt-0">
         <div className="flex justify-between items-center mb-6">
           <Title level={4}>Recent presentations</Title>
-          <Dropdown menu={{ items: menuItems }}>
+          <Dropdown menu={{ 
+            items: [
+              { key: '1', label: 'Owned by me' },
+              { key: '2', label: 'Owned by anyone' }
+            ] 
+          }}>
             <Text className="text-[#E67423] cursor-pointer">
               Owned by anyone ▼
             </Text>
