@@ -89,27 +89,35 @@ const deleteSlide = async (req, res) => {
     const { userId, slideId } = req.body;
   
     try {
-      if (!userId || !slideId) {
-        return res.status(400).json({ message: "User Id and Slide Id are required" });
+      if (!slideId) {
+        return res.status(400).json({ message: "Slide Id is required" });
       }
-  
-      // 1. Delete the slide from the Slide collection
-      const deletedSlide = await SlideDeck.findByIdAndDelete(slideId);
-      if (!deletedSlide) {
-        return res.status(404).json({ message: "Slide not found" });
+
+      // Check if user is logged in (userId provided)
+      if (userId) {
+        // For logged-in users: delete slide and remove from user's slides array
+        const deletedSlide = await SlideDeck.findByIdAndDelete(slideId);
+        if (!deletedSlide) {
+          return res.status(404).json({ message: "Slide not found" });
+        }
+
+        await User.findByIdAndUpdate(userId, {
+          $pull: { slides: slideId },
+        });
+      } else {
+        // For guest users: just delete the slide
+        const deletedSlide = await SlideDeck.findByIdAndDelete(slideId);
+        if (!deletedSlide) {
+          return res.status(404).json({ message: "Slide not found" });
+        }
       }
-  
-      // 2. Remove the slide reference from the user's slides array
-      await User.findByIdAndUpdate(userId, {
-        $pull: { slides: slideId },
-      });
   
       return res.status(200).json({ message: "Slide deleted successfully" });
     } catch (error) {
       console.error("Delete slide error:", error);
       return res.status(500).json({ message: "Internal server error" });
     }
-  };
+};
 
 const showSlides = async (req, res) => {
     try {

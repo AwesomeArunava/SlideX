@@ -134,12 +134,18 @@ const Presentation = () => {
     { 
       key: "1", 
       label: "Open",
-      onClick: () => handleSlideClick(slideId)
+      onClick: (e) => {
+        e.domEvent.stopPropagation();
+        handleSlideClick(slideId);
+      }
     },
     { 
       key: "4", 
       label: "Remove",
-      onClick: () => handleDeleteSlide(slideId)
+      onClick: (e) => {
+        e.domEvent.stopPropagation();
+        handleDeleteSlide(slideId);
+      }
     },
   ];
 
@@ -147,9 +153,12 @@ const Presentation = () => {
     try {
       const authToken = localStorage.getItem('authToken');
       const userId = user?.id;
-      
-      if (!userId) {
-        throw new Error('You must be logged in to delete slides');
+      const sessionId = localStorage.getItem('sessionId');
+
+      // Prevent deleting if we're currently viewing this slide
+      if (window.location.pathname.includes(slideId)) {
+        messageApi.warning('Cannot delete slide while editing it');
+        return;
       }
 
       const response = await fetch('http://localhost:3000/api/slide/deleteSlide', {
@@ -158,16 +167,43 @@ const Presentation = () => {
           'Content-Type': 'application/json',
           ...(authToken && { 'Authorization': `Bearer ${authToken}` })
         },
-        body: JSON.stringify({ userId, slideId })
+        body: JSON.stringify({ 
+          ...(userId ? { userId } : {}),
+          slideId 
+        })
       });
 
+      // First check if response is JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        throw new Error(text || 'Invalid response from server');
+      }
+
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Failed to delete slide');
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to delete slide');
+      }
       
       messageApi.success('Slide deleted successfully');
-      fetchUserSlides(userId);
+      
+      // Refresh the slides list
+      if (userId) {
+        fetchUserSlides(userId);
+      } else if (sessionId) {
+        fetchSessionSlides(sessionId);
+      }
+
+      // If we're on the editor page for this slide, redirect to home
+      if (window.location.pathname.includes(slideId)) {
+        setTimeout(() => navigate('/'), 1500);
+      }
     } catch (error) {
-      messageApi.error(error.message || 'Failed to delete slide');
+      console.error('Delete error:', error);
+      messageApi.error(error.message.includes('<!DOCTYPE html>') 
+        ? 'Server error occurred' 
+        : error.message);
     }
   };
 
