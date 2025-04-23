@@ -645,7 +645,7 @@ const colorPick = [{key:"color_picker", label:( <div><ColorPicker defaultValue="
           />
         </div>
       </Header>
-    </>
+   
   );
 };
 
