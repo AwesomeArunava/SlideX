@@ -80,7 +80,7 @@ const Presentation = () => {
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Failed to fetch slides');
-      console.log("slides: ", data.slides)
+      console.log("slides: ", data)
       setUserSlides(data.slides || []);
     } catch (error) {
       messageApi.error(error.message || 'Failed to load slides');

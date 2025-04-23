@@ -111,7 +111,7 @@ const deleteSlide = async (req, res) => {
     }
   };
 
-const showSlides = async(req, res) => {
+const showSlides = async (req, res) => {
     try {
         const { userId, sessionId } = req.body;
 
@@ -128,12 +128,22 @@ const showSlides = async(req, res) => {
             }
             slides = user.slides;
         } else {
-            // Get slides for guest session
-            const slideDeck = await SlideDeck.findOne({ sessionId });
-            if (!slideDeck) {
-                return res.status(404).json({ message: "Session not found" });
+            // Get all slide decks for guest session
+            const slideDecks = await SlideDeck.find({ sessionId });
+            if (!slideDecks || slideDecks.length === 0) {
+                return res.status(200).json({
+                    message: "No slides found for this session",
+                    slides: []
+                });
             }
-            slides = slideDeck.slides;
+            // Combine all slides from all decks for this session
+            slides = slideDecks.map(deck => ({
+                _id: deck._id,
+                title: deck.title,
+                previewImage: deck.previewImage,
+                createdAt: deck.createdAt,
+                updatedAt: deck.updatedAt
+            }));
         }
 
         return res.status(200).json({

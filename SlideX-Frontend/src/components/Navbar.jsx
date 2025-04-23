@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { Layout, Menu, Button, Input, message, ColorPicker, Dropdown } from "antd";
 import * as fabric from "fabric";
@@ -16,7 +17,7 @@ const { Header } = Layout;
 const Navbar = () => {
   const [messageApi, contextHolder] = message.useMessage();
   const [title, setTitle] = useState('');
-  
+  const { id: slideDeckId } = useParams();
   const { 
     slides, 
     currentIndex, 
@@ -27,12 +28,29 @@ const Navbar = () => {
   const { editor } = useSelector((state) => state.editor);
 
   useEffect(() => {
-    setTitle(slides[currentIndex]?.title || 'Untitled Presentation');
-  }, [currentIndex, slides]);
+    const fetchSlideTitle = async () => {
+      try {
+        const response = await fetch(`http://localhost:3000/api/slide/${slideDeckId}`);
+        const data = await response.json();
+        if (response.ok) {
+          setTitle(data.title || 'Untitled Presentation');
+        } else {
+          setTitle('Untitled Presentation');
+        }
+      } catch (error) {
+        console.error('Error fetching title:', error);
+        setTitle('Untitled Presentation');
+      }
+    };
+
+    fetchSlideTitle();
+  }, [slideDeckId]);
 
   const updateSlideTitle = (newTitle) => {
     setTitle(newTitle);
   };
+
+  
 
   const saveSlideTitle = async () => {
     try {
@@ -43,7 +61,7 @@ const Navbar = () => {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         },
         body: JSON.stringify({
-          slideId: slides[currentIndex]._id,
+          slideId: slideDeckId,
           title: title
         })
       });
@@ -615,13 +633,15 @@ const colorPick = [{key:"color_picker", label:( <div><ColorPicker defaultValue="
             <img src={slidex} alt="slidex-logo" width={100} className="ml-4"/>
             <div className="ml-4">
               <Input 
-                value={slides[currentIndex]?.title || 'Untitled Presentation'}
+                value={title}
                 onChange={(e) => updateSlideTitle(e.target.value)}
-                onPressEnter={() => saveSlideTitle()}
-                onBlur={() => saveSlideTitle()}
+                onPressEnter={saveSlideTitle}
+                onBlur={saveSlideTitle}
                 bordered={false}
                 className="text-white font-medium text-lg"
                 style={{ color: 'white', width: '300px' }}
+                allowClear
+                placeholder="Presentation Title"
               />
             </div>
           </div>
