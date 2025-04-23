@@ -517,7 +517,7 @@ const Navbar = () => {
       }
     }
   
-    doc.save("slides.pdf");
+    doc.save(`${title || 'Untitled'}.pdf`);
   };
 
   const generatePPTXFromImages = async() => {
@@ -547,7 +547,7 @@ const Navbar = () => {
       });
     });
   
-    pptx.writeFile("slides.pptx");
+    pptx.writeFile(`${title || 'Untitled'}.pptx`);
   };
 
 // addShape("rectangle", { width: 120, height: 60, fill: "green" });
