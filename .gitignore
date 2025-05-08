@@ -1,4 +1,4 @@
 .aider*
 node_modules/
---Main\ model=deepseek/
---Weak\ model=openrouter/
+"--Main model=deepseek"/
+"--Weak model=openrouter"/
